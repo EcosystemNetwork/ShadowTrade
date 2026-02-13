@@ -91,6 +91,100 @@ npm run build
 npm test
 ```
 
+## Trading Dashboard
+
+Shadow Trader includes a web-based dashboard for managing claw bots and executing real trades.
+
+### Starting the Dashboard
+
+```bash
+npm run dashboard
+```
+
+This starts an HTTP server at `http://localhost:8080` with:
+- **Dashboard UI**: `http://localhost:8080/dashboard`
+- **REST API**: `http://localhost:8080/api`
+
+### Using the Dashboard
+
+1. **Add a Claw Bot**
+   - Click "Add New Bot" in the dashboard
+   - Enter your bot's name and parser endpoint URL
+   - Optionally add an API key for authentication
+   - Enable the bot to make it available for trading
+
+2. **Submit a Trade**
+   - Select a registered bot from the dropdown
+   - Enter your trading strategy in natural language
+   - Click "Submit Trade" to start monitoring
+
+3. **Monitor Trades**
+   - View active trades in real-time
+   - Check trade status (pending, monitoring, executed, failed, expired)
+   - View detailed trade information including receipts
+
+### Dashboard API
+
+The dashboard exposes a REST API for programmatic access:
+
+**Bot Management**
+- `GET /api/bots` - List all registered bots
+- `POST /api/bots` - Register a new bot
+- `GET /api/bots/:name/health` - Check bot health
+
+**Trade Management**
+- `GET /api/trades` - List all trades
+- `POST /api/trades` - Submit a new trade
+- `GET /api/trades/:id` - Get trade status
+- `DELETE /api/trades/:id` - Cancel a trade
+
+**Example: Register a Bot**
+```bash
+curl -X POST http://localhost:8080/api/bots \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "my-claude-bot",
+    "endpoint": "https://your-bot.example.com/parse-strategy",
+    "enabled": true
+  }'
+```
+
+**Example: Submit a Trade**
+```bash
+curl -X POST http://localhost:8080/api/trades \
+  -H "Content-Type: application/json" \
+  -d '{
+    "bot_name": "my-claude-bot",
+    "user_prompt": "Buy ETH if it drops below $2800, max spend $200"
+  }'
+```
+
+### Configuration
+
+You can customize the dashboard configuration in `examples/start-dashboard.js`:
+
+```javascript
+const dashboardConfig = {
+  // Allowed trading pairs
+  allowed_pairs: ["ETH/USDC", "BTC/USDC", "SOL/USDC"],
+  
+  // Maximum spend per trade (hard limit)
+  max_spend_usdc_hard: 1000,
+  
+  // Maximum slippage in basis points (hard limit)
+  max_slippage_bps_hard: 100,
+  
+  // Total trading budget
+  budget_usdc: 10000,
+  
+  // Condition check interval (milliseconds)
+  condition_check_interval_ms: 5000,
+  
+  // Maximum monitoring duration (milliseconds)
+  max_monitoring_duration_ms: 3600000, // 1 hour
+};
+```
+
 ## Project Structure
 
 ```
@@ -105,8 +199,11 @@ src/
   execution/      Trade executor
   receipt/        Receipt & audit trail
   workflow/       End-to-end agent workflow orchestrator
+  dashboard/      Trading dashboard & bot manager
   types/          Shared TypeScript types
 tests/            Test suite
+examples/         Example scripts and usage demos
+public/           Static assets (HTML, favicon)
 ```
 
 ## License
