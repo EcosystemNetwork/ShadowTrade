@@ -531,11 +531,11 @@
                 </div>
                 <div class="bot-endpoint">${escapeHtml(bot.endpoint)}</div>
                 <div class="action-buttons">
-                  <button class="btn-secondary refresh-btn check-health-btn" data-bot-name="${safeName}">
+                  <button class="btn-secondary refresh-btn check-health-btn" data-bot-name="${escapeHtml(bot.name)}">
                     Check Health
                   </button>
                 </div>
-                <div id="bot-health-${safeId}" data-bot-name="${safeName}"></div>
+                <div id="bot-health-${safeId}"></div>
               </li>
             `;
           }).join('');

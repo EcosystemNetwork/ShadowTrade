@@ -139,7 +139,7 @@ export class DashboardServer {
 
     // GET /api/bots/:name/health - Check bot health
     if (pathname.startsWith("/api/bots/") && pathname.endsWith("/health") && req.method === "GET") {
-      const botName = pathname.split("/")[3];
+      const botName = decodeURIComponent(pathname.split("/")[3]);
       const health = await this.dashboard.checkBotHealth(botName);
       this.sendJson(res, 200, health);
       return;
@@ -163,7 +163,7 @@ export class DashboardServer {
 
     // GET /api/trades/:id - Get trade status
     if (pathname.startsWith("/api/trades/") && req.method === "GET") {
-      const tradeId = pathname.split("/")[3];
+      const tradeId = decodeURIComponent(pathname.split("/")[3]);
       const trade = this.dashboard.getTradeStatus(tradeId);
       if (trade) {
         this.sendJson(res, 200, trade);
@@ -175,7 +175,7 @@ export class DashboardServer {
 
     // DELETE /api/trades/:id - Cancel a trade
     if (pathname.startsWith("/api/trades/") && req.method === "DELETE") {
-      const tradeId = pathname.split("/")[3];
+      const tradeId = decodeURIComponent(pathname.split("/")[3]);
       const cancelled = this.dashboard.cancelTrade(tradeId);
       if (cancelled) {
         this.sendJson(res, 200, { message: "Trade cancelled" });

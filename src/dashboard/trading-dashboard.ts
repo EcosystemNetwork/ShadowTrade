@@ -27,7 +27,6 @@ export class TradingDashboard {
   private readonly botManager: BotManager;
   private readonly workflow: AgentWorkflow;
   private readonly trades: Map<string, TradeRequest> = new Map();
-  private monitoringIntervals: Map<string, NodeJS.Timeout> = new Map();
 
   constructor(config: DashboardConfig, encryptionKey?: Buffer) {
     this.config = config;
@@ -175,14 +174,11 @@ export class TradingDashboard {
   }
 
   /**
-   * Stop monitoring a trade.
+   * Stop monitoring a trade (cleanup placeholder for future use).
    */
   private stopMonitoring(tradeId: string): void {
-    const interval = this.monitoringIntervals.get(tradeId);
-    if (interval) {
-      clearInterval(interval);
-      this.monitoringIntervals.delete(tradeId);
-    }
+    // Placeholder for cleanup if needed in future
+    // Currently workflow.run() is synchronous from our perspective
   }
 
   /**
