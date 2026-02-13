@@ -1,0 +1,57 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">ShadowTrade logo</title>
+  <desc id="desc">Hooded figure over shield with candlestick chart and rising arrow.</desc>
+  <defs>
+    <linearGradient id="shieldStroke" x1="86" y1="70" x2="426" y2="432" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D9E6FF"/>
+      <stop offset="0.45" stop-color="#51C5FF"/>
+      <stop offset="1" stop-color="#1942D8"/>
+    </linearGradient>
+    <linearGradient id="hood" x1="256" y1="84" x2="256" y2="264" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#AAB8D8"/>
+      <stop offset="1" stop-color="#1B2742"/>
+    </linearGradient>
+    <linearGradient id="arrow" x1="136" y1="360" x2="396" y2="184" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2BD2FF"/>
+      <stop offset="1" stop-color="#4D8FFF"/>
+    </linearGradient>
+    <radialGradient id="eyes" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256 176) rotate(90) scale(60 84)">
+      <stop stop-color="#D6F6FF"/>
+      <stop offset="1" stop-color="#2EA9FF"/>
+    </radialGradient>
+    <filter id="glow" x="112" y="92" width="288" height="336" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="92" fill="#040814"/>
+
+  <path d="M256 52L430 126V248C430 335 369 414 256 460C143 414 82 335 82 248V126L256 52Z" fill="#060D22"/>
+  <path d="M256 72L412 139V248C412 326 357 394 256 438C155 394 100 326 100 248V139L256 72Z" fill="#07163B"/>
+  <path d="M256 72L412 139V248C412 326 357 394 256 438C155 394 100 326 100 248V139L256 72Z" stroke="url(#shieldStroke)" stroke-width="8"/>
+
+  <g filter="url(#glow)">
+    <path d="M178 252C188 178 213 108 256 108C299 108 324 178 334 252C310 286 287 310 256 310C225 310 202 286 178 252Z" fill="url(#hood)" stroke="#C7D4F2" stroke-width="7"/>
+    <ellipse cx="229" cy="190" rx="20" ry="11" fill="url(#eyes)"/>
+    <ellipse cx="283" cy="190" rx="20" ry="11" fill="url(#eyes)"/>
+  </g>
+
+  <g>
+    <rect x="165" y="285" width="12" height="53" rx="3" fill="#FD3A3A"/>
+    <rect x="184" y="267" width="12" height="70" rx="3" fill="#F6B832"/>
+    <rect x="203" y="249" width="12" height="89" rx="3" fill="#8BF55A"/>
+    <rect x="222" y="272" width="12" height="66" rx="3" fill="#42DFCA"/>
+    <rect x="241" y="242" width="12" height="96" rx="3" fill="#FFE34A"/>
+    <rect x="260" y="257" width="12" height="81" rx="3" fill="#FF6940"/>
+    <rect x="279" y="232" width="12" height="106" rx="3" fill="#86F064"/>
+    <rect x="298" y="246" width="12" height="92" rx="3" fill="#4D8FFF"/>
+    <rect x="317" y="268" width="12" height="70" rx="3" fill="#FD3A3A"/>
+  </g>
+
+  <path d="M143 365L229 300L264 327L365 212" stroke="url(#arrow)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M358 213L391 207L383 240" stroke="url(#arrow)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
