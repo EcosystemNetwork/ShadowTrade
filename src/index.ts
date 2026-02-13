@@ -64,3 +64,13 @@ export type {
   ExecutionReceipt,
   WorkflowConfig,
 } from "./types";
+
+// Dashboard
+export { BotManager, TradingDashboard, DashboardServer } from "./dashboard";
+export type {
+  BotConfig,
+  BotHealthStatus,
+  TradeRequest,
+  DashboardConfig,
+  ServerConfig,
+} from "./dashboard";

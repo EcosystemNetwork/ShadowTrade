@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shadow Trader Dashboard — Real Trading with Claw Bots</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-card: #111827;
+      --bg-code: #0d1117;
+      --border: #1e293b;
+      --border-glow: #3b82f620;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-purple: #8b5cf6;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "SFMono-Regular", Consolas, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .status-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-connected {
+      background: #10b98120;
+      color: var(--accent-green);
+    }
+
+    .status-disconnected {
+      background: #f43f5e20;
+      color: var(--accent-rose);
+    }
+
+    .status-pending {
+      background: #f59e0b20;
+      color: var(--accent-amber);
+    }
+
+    .status-monitoring {
+      background: #06b6d420;
+      color: var(--accent-cyan);
+    }
+
+    .status-executed {
+      background: #10b98120;
+      color: var(--accent-green);
+    }
+
+    .status-failed {
+      background: #f43f5e20;
+      color: var(--accent-rose);
+    }
+
+    .status-expired {
+      background: #64748b20;
+      color: var(--text-muted);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent-blue);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      font-family: var(--font-mono);
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px #3b82f640;
+    }
+
+    .btn-secondary {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-muted);
+    }
+
+    .btn-danger {
+      background: var(--accent-rose);
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .bot-list, .trade-list {
+      list-style: none;
+    }
+
+    .bot-item, .trade-item {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .bot-item-header, .trade-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .bot-name, .trade-id {
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    .bot-endpoint, .trade-prompt {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+      word-break: break-all;
+    }
+
+    .trade-time {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+    }
+
+    .error-message {
+      background: #f43f5e20;
+      border: 1px solid var(--accent-rose);
+      border-radius: 8px;
+      padding: 0.75rem;
+      color: var(--accent-rose);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    .success-message {
+      background: #10b98120;
+      border: 1px solid var(--accent-green);
+      border-radius: 8px;
+      padding: 0.75rem;
+      color: var(--accent-green);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    .bot-meta, .trade-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .refresh-btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      width: auto;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .action-buttons button {
+      flex: 1;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      width: auto;
+    }
+
+    .close-btn:hover {
+      color: var(--text-primary);
+    }
+
+    pre {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Shadow Trader Dashboard</h1>
+    <p class="subtitle">Real trading with pluggable claw bots • Encrypted conditional DeFi execution</p>
+
+    <div class="grid">
+      <!-- Bot Management Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🤖 Claw Bots</h2>
+          <button class="btn-secondary refresh-btn" id="refreshBotsBtn">Refresh</button>
+        </div>
+        <div class="form-group">
+          <button class="btn-primary" id="addBotBtn">+ Add New Bot</button>
+        </div>
+        <ul class="bot-list" id="botList">
+          <li class="empty-state">No bots configured yet</li>
+        </ul>
+      </div>
+
+      <!-- Trade Submission Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📊 New Trade</h2>
+        </div>
+        <form id="tradeForm">
+          <div class="form-group">
+            <label>Select Bot</label>
+            <select id="botSelect" required>
+              <option value="">-- Select a bot --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Trading Strategy</label>
+            <textarea id="tradePrompt" placeholder="Buy ETH if it drops below $2800, max spend $200, slippage 30bps" required></textarea>
+          </div>
+          <button type="submit" class="btn-primary">Submit Trade</button>
+        </form>
+        <div id="tradeFormMessage"></div>
+      </div>
+    </div>
+
+    <!-- Active Trades Card -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">⚡ Active Trades</h2>
+        <button class="btn-secondary refresh-btn" id="refreshTradesBtn">Refresh</button>
+      </div>
+      <ul class="trade-list" id="tradeList">
+        <li class="empty-state">No trades submitted yet</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Add Bot Modal -->
+  <div class="modal" id="addBotModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Add Claw Bot</h3>
+        <button class="close-btn" id="closeAddBotBtn">&times;</button>
+      </div>
+      <form id="addBotForm">
+        <div class="form-group">
+          <label>Bot Name</label>
+          <input type="text" id="botName" placeholder="My Claude Bot" required />
+        </div>
+        <div class="form-group">
+          <label>Parser Endpoint URL</label>
+          <input type="url" id="botEndpoint" placeholder="https://your-claude-bot.example.com/parse-strategy" required />
+        </div>
+        <div class="form-group">
+          <label>API Key (Optional)</label>
+          <input type="text" id="botApiKey" placeholder="sk-..." />
+        </div>
+        <div class="form-group">
+          <label>Timeout (ms)</label>
+          <input type="number" id="botTimeout" value="10000" min="1000" step="1000" />
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="botEnabled" checked />
+          <label style="margin: 0; text-transform: none;">Enable bot immediately</label>
+        </div>
+        <button type="submit" class="btn-primary">Add Bot</button>
+      </form>
+      <div id="addBotMessage"></div>
+    </div>
+  </div>
+
+  <!-- Trade Details Modal -->
+  <div class="modal" id="tradeDetailsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Trade Details</h3>
+        <button class="close-btn" id="closeTradeDetailsBtn">&times;</button>
+      </div>
+      <div id="tradeDetailsContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '';
+
+    // Utility: Generate safe ID from string
+    function generateSafeId(str) {
+      return 'bot-' + encodeURIComponent(str).replace(/%/g, '_');
+    }
+
+    // Setup event listeners on page load
+    window.addEventListener('load', () => {
+      // Button event listeners
+      document.getElementById('refreshBotsBtn').addEventListener('click', loadBots);
+      document.getElementById('addBotBtn').addEventListener('click', showAddBotModal);
+      document.getElementById('closeAddBotBtn').addEventListener('click', closeAddBotModal);
+      document.getElementById('refreshTradesBtn').addEventListener('click', loadTrades);
+      document.getElementById('closeTradeDetailsBtn').addEventListener('click', closeTradeDetailsModal);
+      document.getElementById('tradeForm').addEventListener('submit', submitTrade);
+      document.getElementById('addBotForm').addEventListener('submit', addBot);
+      
+      // Event delegation for dynamically added buttons
+      document.getElementById('tradeList').addEventListener('click', (e) => {
+        if (e.target.classList.contains('view-trade-btn')) {
+          viewTradeDetails(e.target.getAttribute('data-trade-id'));
+        } else if (e.target.classList.contains('cancel-trade-btn')) {
+          cancelTrade(e.target.getAttribute('data-trade-id'));
+        }
+      });
+      
+      document.getElementById('botList').addEventListener('click', (e) => {
+        if (e.target.classList.contains('check-health-btn')) {
+          checkBotHealth(e.target.getAttribute('data-bot-name'));
+        }
+      });
+      
+      // Initial load
+      loadBots();
+      loadTrades();
+      setInterval(loadTrades, 5000); // Auto-refresh trades every 5s
+    });
+
+    // Bot Management
+    async function loadBots() {
+      try {
+        const response = await fetch(`${API_BASE}/api/bots`);
+        const bots = await response.json();
+        
+        const botList = document.getElementById('botList');
+        const botSelect = document.getElementById('botSelect');
+        
+        if (bots.length === 0) {
+          botList.innerHTML = '<li class="empty-state">No bots configured yet</li>';
+          botSelect.innerHTML = '<option value="">-- Select a bot --</option>';
+        } else {
+          botList.innerHTML = bots.map(bot => {
+            const safeName = escapeHtml(bot.name);
+            const safeId = generateSafeId(bot.name);
+            return `
+              <li class="bot-item">
+                <div class="bot-item-header">
+                  <span class="bot-name">${safeName}</span>
+                  <span class="status-badge status-${bot.enabled ? 'connected' : 'disconnected'}">
+                    ${bot.enabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                <div class="bot-endpoint">${escapeHtml(bot.endpoint)}</div>
+                <div class="action-buttons">
+                  <button class="btn-secondary refresh-btn check-health-btn" data-bot-name="${escapeHtml(bot.name)}">
+                    Check Health
+                  </button>
+                </div>
+                <div id="bot-health-${safeId}"></div>
+              </li>
+            `;
+          }).join('');
+          
+          botSelect.innerHTML = '<option value="">-- Select a bot --</option>' + 
+            bots.filter(bot => bot.enabled).map(bot => 
+              `<option value="${escapeHtml(bot.name)}">${escapeHtml(bot.name)}</option>`
+            ).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load bots:', err);
+      }
+    }
+
+    async function checkBotHealth(botName) {
+      const safeId = generateSafeId(botName);
+      const healthDiv = document.getElementById(`bot-health-${safeId}`);
+      healthDiv.innerHTML = '<div class="bot-meta">Checking...</div>';
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/bots/${encodeURIComponent(botName)}/health`);
+        const health = await response.json();
+        
+        const statusClass = health.status === 'connected' ? 'success-message' : 'error-message';
+        const statusText = health.status === 'connected' 
+          ? `✓ Connected (${health.response_time_ms}ms)` 
+          : `✗ ${health.status}: ${health.error_message}`;
+        
+        healthDiv.innerHTML = `<div class="${statusClass}">${statusText}</div>`;
+      } catch (err) {
+        healthDiv.innerHTML = '<div class="error-message">Health check failed</div>';
+      }
+    }
+
+    function showAddBotModal() {
+      document.getElementById('addBotModal').classList.add('active');
+    }
+
+    function closeAddBotModal() {
+      document.getElementById('addBotModal').classList.remove('active');
+      document.getElementById('addBotForm').reset();
+      document.getElementById('addBotMessage').innerHTML = '';
+    }
+
+    async function addBot(event) {
+      event.preventDefault();
+      
+      const botConfig = {
+        name: document.getElementById('botName').value,
+        endpoint: document.getElementById('botEndpoint').value,
+        apiKey: document.getElementById('botApiKey').value || undefined,
+        timeout_ms: parseInt(document.getElementById('botTimeout').value),
+        enabled: document.getElementById('botEnabled').checked,
+      };
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/bots`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(botConfig),
+        });
+        
+        if (response.ok) {
+          document.getElementById('addBotMessage').innerHTML = 
+            '<div class="success-message">Bot added successfully!</div>';
+          await loadBots();
+          setTimeout(closeAddBotModal, 1500);
+        } else {
+          const error = await response.json();
+          document.getElementById('addBotMessage').innerHTML = 
+            `<div class="error-message">Error: ${error.error || 'Failed to add bot'}</div>`;
+        }
+      } catch (err) {
+        document.getElementById('addBotMessage').innerHTML = 
+          '<div class="error-message">Network error. Please try again.</div>';
+      }
+    }
+
+    // Trade Management
+    async function submitTrade(event) {
+      event.preventDefault();
+      
+      const tradeData = {
+        bot_name: document.getElementById('botSelect').value,
+        user_prompt: document.getElementById('tradePrompt').value,
+      };
+      
+      const messageDiv = document.getElementById('tradeFormMessage');
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/trades`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(tradeData),
+        });
+        
+        if (response.ok) {
+          const trade = await response.json();
+          messageDiv.innerHTML = 
+            `<div class="success-message">Trade submitted! ID: ${trade.id}</div>`;
+          document.getElementById('tradeForm').reset();
+          await loadTrades();
+          setTimeout(() => { messageDiv.innerHTML = ''; }, 3000);
+        } else {
+          const error = await response.json();
+          messageDiv.innerHTML = 
+            `<div class="error-message">Error: ${error.error || 'Failed to submit trade'}</div>`;
+        }
+      } catch (err) {
+        messageDiv.innerHTML = 
+          '<div class="error-message">Network error. Please try again.</div>';
+      }
+    }
+
+    async function loadTrades() {
+      try {
+        const response = await fetch(`${API_BASE}/api/trades`);
+        const trades = await response.json();
+        
+        const tradeList = document.getElementById('tradeList');
+        
+        if (trades.length === 0) {
+          tradeList.innerHTML = '<li class="empty-state">No trades submitted yet</li>';
+        } else {
+          tradeList.innerHTML = trades.map(trade => `
+            <li class="trade-item">
+              <div class="trade-item-header">
+                <span class="trade-id">${escapeHtml(trade.id)}</span>
+                <span class="status-badge status-${trade.status}">${trade.status}</span>
+              </div>
+              <div class="trade-prompt">${escapeHtml(trade.user_prompt)}</div>
+              <div class="trade-meta">
+                Bot: ${escapeHtml(trade.bot_name)} • 
+                Submitted: ${new Date(trade.submitted_at).toLocaleString()}
+              </div>
+              <div class="action-buttons">
+                <button class="btn-secondary refresh-btn view-trade-btn" data-trade-id="${escapeHtml(trade.id)}">
+                  View Details
+                </button>
+                ${trade.status === 'pending' || trade.status === 'monitoring' 
+                  ? `<button class="btn-danger refresh-btn cancel-trade-btn" data-trade-id="${escapeHtml(trade.id)}">Cancel</button>`
+                  : ''}
+              </div>
+            </li>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load trades:', err);
+      }
+    }
+
+    async function viewTradeDetails(tradeId) {
+      try {
+        const response = await fetch(`${API_BASE}/api/trades/${encodeURIComponent(tradeId)}`);
+        const trade = await response.json();
+        
+        const content = document.getElementById('tradeDetailsContent');
+        content.innerHTML = `
+          <pre>${JSON.stringify(trade, null, 2)}</pre>
+        `;
+        
+        document.getElementById('tradeDetailsModal').classList.add('active');
+      } catch (err) {
+        alert('Failed to load trade details');
+      }
+    }
+
+    function closeTradeDetailsModal() {
+      document.getElementById('tradeDetailsModal').classList.remove('active');
+    }
+
+    async function cancelTrade(tradeId) {
+      if (!confirm('Are you sure you want to cancel this trade?')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/trades/${encodeURIComponent(tradeId)}`, {
+          method: 'DELETE',
+        });
+        
+        if (response.ok) {
+          await loadTrades();
+        } else {
+          alert('Failed to cancel trade');
+        }
+      } catch (err) {
+        alert('Network error. Please try again.');
+      }
+    }
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+  </script>
+</body>
+</html>
