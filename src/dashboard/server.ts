@@ -1,5 +1,4 @@
 import * as http from "http";
-import * as url from "url";
 import * as fs from "fs";
 import * as path from "path";
 import { TradingDashboard } from "./trading-dashboard";
@@ -70,8 +69,8 @@ export class DashboardServer {
     req: http.IncomingMessage,
     res: http.ServerResponse
   ): Promise<void> {
-    const parsedUrl = url.parse(req.url ?? "", true);
-    const pathname = parsedUrl.pathname ?? "/";
+    const parsedUrl = new URL(req.url ?? "", `http://${req.headers.host ?? "localhost"}`);
+    const pathname = parsedUrl.pathname;
 
     // Set CORS headers
     const corsOrigin = this.config.corsOrigin ?? "*";
@@ -194,8 +193,13 @@ export class DashboardServer {
    * Serve a static file from the public directory.
    */
   private serveFile(res: http.ServerResponse, filename: string, contentType: string): void {
-    const filePath = path.join(__dirname, "..", "..", "public", filename);
-    
+    // Sanitize filename to prevent path traversal
+    const safeName = path.basename(filename);
+    // Check dist location first (built output), then public directory (development)
+    const distPath = path.join(__dirname, "..", safeName);
+    const publicPath = path.join(__dirname, "..", "..", "public", safeName);
+    const filePath = fs.existsSync(distPath) ? distPath : publicPath;
+
     if (fs.existsSync(filePath)) {
       const content = fs.readFileSync(filePath);
       res.writeHead(200, { "Content-Type": contentType });
