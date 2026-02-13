@@ -376,10 +376,10 @@
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">🤖 Claw Bots</h2>
-          <button class="btn-secondary refresh-btn" onclick="loadBots()">Refresh</button>
+          <button class="btn-secondary refresh-btn" id="refreshBotsBtn">Refresh</button>
         </div>
         <div class="form-group">
-          <button class="btn-primary" onclick="showAddBotModal()">+ Add New Bot</button>
+          <button class="btn-primary" id="addBotBtn">+ Add New Bot</button>
         </div>
         <ul class="bot-list" id="botList">
           <li class="empty-state">No bots configured yet</li>
@@ -391,7 +391,7 @@
         <div class="card-header">
           <h2 class="card-title">📊 New Trade</h2>
         </div>
-        <form id="tradeForm" onsubmit="submitTrade(event)">
+        <form id="tradeForm">
           <div class="form-group">
             <label>Select Bot</label>
             <select id="botSelect" required>
@@ -412,7 +412,7 @@
     <div class="card">
       <div class="card-header">
         <h2 class="card-title">⚡ Active Trades</h2>
-        <button class="btn-secondary refresh-btn" onclick="loadTrades()">Refresh</button>
+        <button class="btn-secondary refresh-btn" id="refreshTradesBtn">Refresh</button>
       </div>
       <ul class="trade-list" id="tradeList">
         <li class="empty-state">No trades submitted yet</li>
@@ -425,9 +425,9 @@
     <div class="modal-content">
       <div class="modal-header">
         <h3 class="modal-title">Add Claw Bot</h3>
-        <button class="close-btn" onclick="closeAddBotModal()">&times;</button>
+        <button class="close-btn" id="closeAddBotBtn">&times;</button>
       </div>
-      <form id="addBotForm" onsubmit="addBot(event)">
+      <form id="addBotForm">
         <div class="form-group">
           <label>Bot Name</label>
           <input type="text" id="botName" placeholder="My Claude Bot" required />
@@ -459,7 +459,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h3 class="modal-title">Trade Details</h3>
-        <button class="close-btn" onclick="closeTradeDetailsModal()">&times;</button>
+        <button class="close-btn" id="closeTradeDetailsBtn">&times;</button>
       </div>
       <div id="tradeDetailsContent"></div>
     </div>
@@ -468,8 +468,38 @@
   <script>
     const API_BASE = '';
 
-    // Load bots on page load
+    // Utility: Generate safe ID from string
+    function generateSafeId(str) {
+      return 'bot-' + encodeURIComponent(str).replace(/%/g, '_');
+    }
+
+    // Setup event listeners on page load
     window.addEventListener('load', () => {
+      // Button event listeners
+      document.getElementById('refreshBotsBtn').addEventListener('click', loadBots);
+      document.getElementById('addBotBtn').addEventListener('click', showAddBotModal);
+      document.getElementById('closeAddBotBtn').addEventListener('click', closeAddBotModal);
+      document.getElementById('refreshTradesBtn').addEventListener('click', loadTrades);
+      document.getElementById('closeTradeDetailsBtn').addEventListener('click', closeTradeDetailsModal);
+      document.getElementById('tradeForm').addEventListener('submit', submitTrade);
+      document.getElementById('addBotForm').addEventListener('submit', addBot);
+      
+      // Event delegation for dynamically added buttons
+      document.getElementById('tradeList').addEventListener('click', (e) => {
+        if (e.target.classList.contains('view-trade-btn')) {
+          viewTradeDetails(e.target.getAttribute('data-trade-id'));
+        } else if (e.target.classList.contains('cancel-trade-btn')) {
+          cancelTrade(e.target.getAttribute('data-trade-id'));
+        }
+      });
+      
+      document.getElementById('botList').addEventListener('click', (e) => {
+        if (e.target.classList.contains('check-health-btn')) {
+          checkBotHealth(e.target.getAttribute('data-bot-name'));
+        }
+      });
+      
+      // Initial load
       loadBots();
       loadTrades();
       setInterval(loadTrades, 5000); // Auto-refresh trades every 5s
@@ -488,23 +518,27 @@
           botList.innerHTML = '<li class="empty-state">No bots configured yet</li>';
           botSelect.innerHTML = '<option value="">-- Select a bot --</option>';
         } else {
-          botList.innerHTML = bots.map(bot => `
-            <li class="bot-item">
-              <div class="bot-item-header">
-                <span class="bot-name">${escapeHtml(bot.name)}</span>
-                <span class="status-badge status-${bot.enabled ? 'connected' : 'disconnected'}">
-                  ${bot.enabled ? 'Enabled' : 'Disabled'}
-                </span>
-              </div>
-              <div class="bot-endpoint">${escapeHtml(bot.endpoint)}</div>
-              <div class="action-buttons">
-                <button class="btn-secondary refresh-btn" onclick="checkBotHealth('${escapeHtml(bot.name)}')">
-                  Check Health
-                </button>
-              </div>
-              <div id="bot-health-${escapeHtml(bot.name)}"></div>
-            </li>
-          `).join('');
+          botList.innerHTML = bots.map(bot => {
+            const safeName = escapeHtml(bot.name);
+            const safeId = generateSafeId(bot.name);
+            return `
+              <li class="bot-item">
+                <div class="bot-item-header">
+                  <span class="bot-name">${safeName}</span>
+                  <span class="status-badge status-${bot.enabled ? 'connected' : 'disconnected'}">
+                    ${bot.enabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                <div class="bot-endpoint">${escapeHtml(bot.endpoint)}</div>
+                <div class="action-buttons">
+                  <button class="btn-secondary refresh-btn check-health-btn" data-bot-name="${safeName}">
+                    Check Health
+                  </button>
+                </div>
+                <div id="bot-health-${safeId}" data-bot-name="${safeName}"></div>
+              </li>
+            `;
+          }).join('');
           
           botSelect.innerHTML = '<option value="">-- Select a bot --</option>' + 
             bots.filter(bot => bot.enabled).map(bot => 
@@ -517,7 +551,8 @@
     }
 
     async function checkBotHealth(botName) {
-      const healthDiv = document.getElementById(`bot-health-${botName}`);
+      const safeId = generateSafeId(botName);
+      const healthDiv = document.getElementById(`bot-health-${safeId}`);
       healthDiv.innerHTML = '<div class="bot-meta">Checking...</div>';
       
       try {
@@ -628,7 +663,7 @@
           tradeList.innerHTML = trades.map(trade => `
             <li class="trade-item">
               <div class="trade-item-header">
-                <span class="trade-id">${trade.id}</span>
+                <span class="trade-id">${escapeHtml(trade.id)}</span>
                 <span class="status-badge status-${trade.status}">${trade.status}</span>
               </div>
               <div class="trade-prompt">${escapeHtml(trade.user_prompt)}</div>
@@ -637,11 +672,11 @@
                 Submitted: ${new Date(trade.submitted_at).toLocaleString()}
               </div>
               <div class="action-buttons">
-                <button class="btn-secondary refresh-btn" onclick="viewTradeDetails('${trade.id}')">
+                <button class="btn-secondary refresh-btn view-trade-btn" data-trade-id="${escapeHtml(trade.id)}">
                   View Details
                 </button>
                 ${trade.status === 'pending' || trade.status === 'monitoring' 
-                  ? `<button class="btn-danger refresh-btn" onclick="cancelTrade('${trade.id}')">Cancel</button>`
+                  ? `<button class="btn-danger refresh-btn cancel-trade-btn" data-trade-id="${escapeHtml(trade.id)}">Cancel</button>`
                   : ''}
               </div>
             </li>

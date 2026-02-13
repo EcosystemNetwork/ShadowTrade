@@ -55,6 +55,8 @@ export class BotManager {
 
   /**
    * Check if a bot is responsive.
+   * Note: Health check endpoints should not require authentication.
+   * The API key is only sent if provided for informational purposes.
    */
   async checkBotHealth(name: string): Promise<BotHealthStatus> {
     const bot = this.bots.get(name);
@@ -80,7 +82,6 @@ export class BotManager {
 
       const response = await fetch(bot.endpoint, {
         method: "GET",
-        headers: bot.apiKey ? { "Authorization": `Bearer ${bot.apiKey}` } : {},
         signal: controller.signal,
       });
 

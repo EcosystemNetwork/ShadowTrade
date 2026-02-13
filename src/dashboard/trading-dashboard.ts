@@ -146,8 +146,8 @@ export class TradingDashboard {
       // Create a condition checker that polls market data
       const conditionChecker: ConditionChecker = {
         checkConditions: async (strategy: StrategyDSL) => {
-          // In a real implementation, this would check live market data
-          // For now, we return false to simulate waiting for conditions
+          // TODO: In production, implement real market data checking here
+          // This placeholder returns random results for demonstration
           return this.simulateConditionCheck(strategy);
         },
       };
@@ -187,10 +187,15 @@ export class TradingDashboard {
 
   /**
    * Simulate condition checking (to be replaced with real market data).
+   * 
+   * WARNING: This is a placeholder that returns random results.
+   * In production, this MUST be replaced with actual market data checks
+   * to prevent trades from executing at incorrect prices.
    */
   private simulateConditionCheck(strategy: StrategyDSL): boolean {
-    // In production, this would check real market conditions
-    // For demonstration, we can randomly trigger or use a deterministic rule
+    // TODO: Implement real market condition checking
+    // This should check actual market prices, funding rates, or volatility
+    // against the conditions specified in the strategy
     return Math.random() > 0.5;
   }
 
@@ -198,6 +203,6 @@ export class TradingDashboard {
    * Generate unique trade ID.
    */
   private generateTradeId(): string {
-    return `trade_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `trade_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 }

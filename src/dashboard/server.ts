@@ -9,6 +9,7 @@ import type { BotConfig } from "./bot-manager";
 export interface ServerConfig {
   port: number;
   host?: string;
+  corsOrigin?: string;
 }
 
 /**
@@ -73,7 +74,8 @@ export class DashboardServer {
     const pathname = parsedUrl.pathname ?? "/";
 
     // Set CORS headers
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    const corsOrigin = this.config.corsOrigin ?? "*";
+    res.setHeader("Access-Control-Allow-Origin", corsOrigin);
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
