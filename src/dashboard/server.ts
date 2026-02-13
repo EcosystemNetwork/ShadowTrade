@@ -193,9 +193,11 @@ export class DashboardServer {
    * Serve a static file from the public directory.
    */
   private serveFile(res: http.ServerResponse, filename: string, contentType: string): void {
+    // Sanitize filename to prevent path traversal
+    const safeName = path.basename(filename);
     // Check dist location first (built output), then public directory (development)
-    const distPath = path.join(__dirname, "..", filename);
-    const publicPath = path.join(__dirname, "..", "..", "public", filename);
+    const distPath = path.join(__dirname, "..", safeName);
+    const publicPath = path.join(__dirname, "..", "..", "public", safeName);
     const filePath = fs.existsSync(distPath) ? distPath : publicPath;
 
     if (fs.existsSync(filePath)) {
