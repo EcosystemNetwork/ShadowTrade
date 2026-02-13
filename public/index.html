@@ -3,84 +3,1053 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shadow Trader</title>
+  <title>Shadow Trader — Encrypted Conditional DeFi Agent</title>
+  <meta name="description" content="Execute conditional trades using encrypted intents, BYO-Claude strategy parsing, and strict policy enforcement." />
   <link rel="icon" href="/favicon.ico" type="image/x-icon" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-card: #111827;
+      --bg-code: #0d1117;
+      --border: #1e293b;
+      --border-glow: #3b82f620;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-purple: #8b5cf6;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #0d1117;
-      color: #c9d1d9;
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
       min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── Animated background ── */
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .bg-glow .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      animation: float 20s ease-in-out infinite;
+    }
+    .bg-glow .orb-1 { width: 600px; height: 600px; background: var(--accent-blue); top: -10%; left: -10%; animation-delay: 0s; }
+    .bg-glow .orb-2 { width: 500px; height: 500px; background: var(--accent-purple); top: 30%; right: -15%; animation-delay: -7s; }
+    .bg-glow .orb-3 { width: 400px; height: 400px; background: var(--accent-cyan); bottom: -5%; left: 20%; animation-delay: -14s; }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* ── Layout ── */
+    .page { position: relative; z-index: 1; }
+
+    .section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 5rem 1.5rem;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin-bottom: 3rem;
+    }
+
+    /* ── Navigation ── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 1rem 1.5rem;
+      background: #0a0e17cc;
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nav-logo .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      border-radius: 6px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      padding: 2rem;
+      font-size: 0.85rem;
     }
-    .container {
-      max-width: 640px;
-      text-align: center;
-    }
-    h1 {
-      font-size: 2.5rem;
-      color: #58a6ff;
-      margin-bottom: 0.5rem;
-    }
-    .tagline {
-      font-size: 1.1rem;
-      color: #8b949e;
-      margin-bottom: 2rem;
-    }
-    .architecture {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      padding: 1.25rem;
-      margin-bottom: 2rem;
-      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
       font-size: 0.9rem;
-      color: #79c0ff;
-      word-break: break-word;
+      font-weight: 500;
+      transition: color 0.2s;
     }
-    .links {
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-cta {
+      background: var(--accent-blue) !important;
+      color: #fff !important;
+      padding: 0.5rem 1.1rem;
+      border-radius: 8px;
+      font-weight: 600 !important;
+      transition: background 0.2s, transform 0.15s !important;
+    }
+    .nav-cta:hover { background: #2563eb !important; transform: translateY(-1px); }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 10rem 1.5rem 5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #3b82f615;
+      border: 1px solid #3b82f630;
+      border-radius: 100px;
+      padding: 0.4rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--accent-blue);
+      margin-bottom: 1.5rem;
+    }
+    .hero-badge .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.7;
+    }
+    .hero-buttons {
       display: flex;
       gap: 1rem;
       justify-content: center;
       flex-wrap: wrap;
     }
-    .links a {
-      display: inline-block;
-      padding: 0.6rem 1.4rem;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: 600;
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.6rem;
+      border-radius: 10px;
       font-size: 0.95rem;
-      transition: opacity 0.15s;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
     }
-    .links a:hover { opacity: 0.85; }
-    .links .primary {
-      background: #238636;
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
       color: #fff;
+      box-shadow: 0 4px 24px #3b82f640;
     }
-    .links .secondary {
-      background: #21262d;
-      color: #c9d1d9;
-      border: 1px solid #30363d;
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px #3b82f650; }
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--text-muted); transform: translateY(-1px); }
+
+    /* ── Pipeline ── */
+    .pipeline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 3rem auto 0;
+      max-width: 900px;
+    }
+    .pipeline-step {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .pipeline-node {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.55rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      transition: all 0.3s;
+      cursor: default;
+    }
+    .pipeline-node:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      background: #3b82f610;
+      transform: translateY(-2px);
+    }
+    .pipeline-arrow {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 0 0.3rem;
+    }
+
+    /* ── Features ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+      transition: all 0.3s;
+    }
+    .feature-card:hover {
+      border-color: #3b82f640;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px #0004;
+    }
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+    .feature-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ── Interactive Demo ── */
+    .demo-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .demo-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.5rem;
+      background: #0f172a;
+      border-bottom: 1px solid var(--border);
+    }
+    .demo-header .demo-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .demo-header .demo-dots span {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .demo-header .demo-dots span:nth-child(1) { background: #ef4444; }
+    .demo-header .demo-dots span:nth-child(2) { background: #f59e0b; }
+    .demo-header .demo-dots span:nth-child(3) { background: #10b981; }
+    .demo-header .demo-title {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .demo-body {
+      padding: 1.5rem;
+    }
+    .demo-steps {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .demo-step-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+    .demo-step-btn.active {
+      background: var(--accent-blue);
+      color: #fff;
+      border-color: var(--accent-blue);
+    }
+    .demo-step-btn:hover:not(.active) {
+      border-color: var(--text-muted);
+      color: var(--text-primary);
+    }
+    .demo-panel {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .demo-panel.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .demo-input-area {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .demo-input {
+      flex: 1;
+      min-width: 200px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .demo-input:focus { border-color: var(--accent-blue); }
+    .demo-run-btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .demo-run-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px #3b82f640; }
+    .demo-run-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .demo-output {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.7;
+      overflow-x: auto;
+      color: var(--text-secondary);
+      min-height: 200px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .demo-output .kw { color: var(--accent-purple); }
+    .demo-output .str { color: var(--accent-green); }
+    .demo-output .num { color: var(--accent-amber); }
+    .demo-output .comment { color: var(--text-muted); font-style: italic; }
+    .demo-output .key { color: var(--accent-cyan); }
+    .demo-output .label { color: var(--accent-blue); font-weight: 700; }
+    .demo-progress {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem;
+      background: #3b82f610;
+      border: 1px solid #3b82f630;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+    .demo-progress .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #3b82f640;
+      border-top-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .demo-progress.done {
+      background: #10b98110;
+      border-color: #10b98130;
+      color: var(--accent-green);
+    }
+    .demo-progress.done .spinner {
+      border-color: #10b98140;
+      border-top-color: var(--accent-green);
+      animation: none;
+    }
+
+    /* ── Code Block ── */
+    .code-block {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.25rem;
+      background: #0f172a;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .code-content {
+      padding: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.8;
+      overflow-x: auto;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .code-content .kw { color: var(--accent-purple); }
+    .code-content .str { color: var(--accent-green); }
+    .code-content .num { color: var(--accent-amber); }
+    .code-content .fn { color: var(--accent-blue); }
+    .code-content .comment { color: var(--text-muted); font-style: italic; }
+
+    /* ── Architecture ── */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .arch-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .arch-card:hover {
+      border-color: #3b82f640;
+      transform: translateY(-2px);
+    }
+    .arch-card .arch-num {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .arch-card h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+    .arch-card p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      text-align: center;
+      padding: 5rem 1.5rem;
+    }
+    .cta-box {
+      max-width: 700px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, #1e293b, #111827);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3.5rem 2rem;
+    }
+    .cta-box h2 {
+      font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+    .cta-box p {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      margin-bottom: 2rem;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    /* ── Footer ── */
+    footer {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    footer a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    footer a:hover { color: var(--text-primary); }
+    .footer-links { display: flex; gap: 1.5rem; }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      nav { padding: 0.75rem 1rem; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .hero { padding: 7rem 1rem 3rem; }
+      .section { padding: 3rem 1rem; }
+      .pipeline { gap: 0.25rem; }
+      .pipeline-node { padding: 0.4rem 0.6rem; font-size: 0.7rem; }
+      .pipeline-arrow { font-size: 0.7rem; padding: 0 0.15rem; }
+      .demo-steps { gap: 0.35rem; }
+      .demo-step-btn { padding: 0.4rem 0.7rem; font-size: 0.75rem; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Shadow Trader</h1>
-    <p class="tagline">Encrypted Conditional DeFi Agent with BYO-Claude Strategy Parsing</p>
-    <div class="architecture">
-      prompt → parse → validate → encrypt → poll → decrypt → execute → receipt
-    </div>
-    <div class="links">
-      <a class="primary" href="https://github.com/EcosystemNetwork/ShadowTrade">GitHub</a>
-      <a class="secondary" href="https://www.npmjs.com/package/shadowtrade">npm</a>
-    </div>
+  <!-- Background glow -->
+  <div class="bg-glow">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
   </div>
+
+  <div class="page">
+    <!-- Navigation -->
+    <nav>
+      <a href="#" class="nav-logo">
+        <span class="logo-icon">⚡</span>
+        Shadow Trader
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
+        <a href="#architecture">How It Works</a>
+        <a href="https://github.com/EcosystemNetwork/ShadowTrade" class="nav-cta">GitHub →</a>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        v1.0 — Now Available
+      </div>
+      <h1>Trade Smarter with<br /><span class="gradient-text">Encrypted DeFi Intents</span></h1>
+      <p>
+        Shadow Trader is an autonomous agent that turns natural-language strategies into
+        encrypted conditional trades — with BYO-Claude parsing, deterministic guardrails,
+        and a full audit trail.
+      </p>
+      <div class="hero-buttons">
+        <a href="#demo" class="btn btn-primary">Try the Demo ↓</a>
+        <a href="https://github.com/EcosystemNetwork/ShadowTrade" class="btn btn-secondary">View on GitHub</a>
+      </div>
+      <div class="pipeline">
+        <div class="pipeline-step"><span class="pipeline-node">prompt</span><span class="pipeline-arrow">→</span></div>
+        <div class="pipeline-step"><span class="pipeline-node">parse</span><span class="pipeline-arrow">→</span></div>
+        <div class="pipeline-step"><span class="pipeline-node">validate</span><span class="pipeline-arrow">→</span></div>
+        <div class="pipeline-step"><span class="pipeline-node">encrypt</span><span class="pipeline-arrow">→</span></div>
+        <div class="pipeline-step"><span class="pipeline-node">poll</span><span class="pipeline-arrow">→</span></div>
+        <div class="pipeline-step"><span class="pipeline-node">decrypt</span><span class="pipeline-arrow">→</span></div>
+        <div class="pipeline-step"><span class="pipeline-node">execute</span><span class="pipeline-arrow">→</span></div>
+        <div class="pipeline-step"><span class="pipeline-node">receipt</span></div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+      <span class="section-label">Capabilities</span>
+      <h2 class="section-title">Everything you need for trustless DeFi automation</h2>
+      <p class="section-subtitle">Eight layers of separation between natural language and on-chain execution.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #3b82f618; color: var(--accent-blue);">🤖</div>
+          <h3>BYO-Claude Parser</h3>
+          <p>Plug in your own Claude bot to translate natural language into the Strategy DSL. All parser output is treated as untrusted and validated through Zod schemas.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #8b5cf618; color: var(--accent-purple);">🔒</div>
+          <h3>BITE v2 Encryption</h3>
+          <p>Strategies are encrypted with AES-256-GCM before submission. Only public metadata (pair, budget, expiry) is visible until conditions are met.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #10b98118; color: var(--accent-green);">🛡️</div>
+          <h3>Deterministic Validation</h3>
+          <p>Hard limits enforce maximum spend, slippage caps, and pair allowlists. Invalid values are clamped or rejected — no ambiguity.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #f59e0b18; color: var(--accent-amber);">💰</div>
+          <h3>x402 Payment Protocol</h3>
+          <p>Built-in HTTP 402 pay-retry flows for paid data discovery. The economic reasoning engine evaluates cost vs budget before purchasing data tools.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #f43f5e18; color: var(--accent-rose);">⚠️</div>
+          <h3>Risk Controls</h3>
+          <p>Final safety checks run at execution time — verifying action types, trade counts, and sanity constraints before any swap is broadcast.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #06b6d418; color: var(--accent-cyan);">📋</div>
+          <h3>Immutable Audit Trail</h3>
+          <p>Every run produces a receipt with the original prompt, parsed strategy, encryption metadata, execution hash, and full payment history.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Demo -->
+    <section class="section" id="demo">
+      <span class="section-label">Interactive Demo</span>
+      <h2 class="section-title">See the pipeline in action</h2>
+      <p class="section-subtitle">Type a natural-language trading strategy and watch Shadow Trader process it through all eight stages.</p>
+
+      <div class="demo-container">
+        <div class="demo-header">
+          <div class="demo-dots"><span></span><span></span><span></span></div>
+          <span class="demo-title">shadow-trader — live demo</span>
+        </div>
+        <div class="demo-body">
+          <div class="demo-input-area">
+            <input type="text" class="demo-input" id="demoPrompt" value="Buy ETH if it drops below $2800, max spend $200, slippage 30bps" placeholder="Enter a trading strategy in plain English..." />
+            <button class="demo-run-btn" id="demoRunBtn" onclick="runDemo()">Run Pipeline ▶</button>
+          </div>
+          <div class="demo-steps">
+            <button class="demo-step-btn active" data-step="0" onclick="showStep(0)">① Parse</button>
+            <button class="demo-step-btn" data-step="1" onclick="showStep(1)">② Validate</button>
+            <button class="demo-step-btn" data-step="2" onclick="showStep(2)">③ Encrypt</button>
+            <button class="demo-step-btn" data-step="3" onclick="showStep(3)">④ Poll</button>
+            <button class="demo-step-btn" data-step="4" onclick="showStep(4)">⑤ Execute</button>
+            <button class="demo-step-btn" data-step="5" onclick="showStep(5)">⑥ Receipt</button>
+          </div>
+          <div id="demoOutput">
+            <div class="demo-panel active" id="step-0">
+              <div class="demo-output" id="out-0"><span class="comment">// Press "Run Pipeline" to begin…</span></div>
+            </div>
+            <div class="demo-panel" id="step-1">
+              <div class="demo-output" id="out-1"></div>
+            </div>
+            <div class="demo-panel" id="step-2">
+              <div class="demo-output" id="out-2"></div>
+            </div>
+            <div class="demo-panel" id="step-3">
+              <div class="demo-output" id="out-3"></div>
+            </div>
+            <div class="demo-panel" id="step-4">
+              <div class="demo-output" id="out-4"></div>
+            </div>
+            <div class="demo-panel" id="step-5">
+              <div class="demo-output" id="out-5"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Code Example -->
+    <section class="section" id="code">
+      <span class="section-label">Quick Start</span>
+      <h2 class="section-title">Integrate in minutes</h2>
+      <p class="section-subtitle">Install from npm and wire up your BYO-Claude endpoint.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span>workflow.ts</span>
+          <span>TypeScript</span>
+        </div>
+        <div class="code-content"><span class="kw">import</span> { AgentWorkflow } <span class="kw">from</span> <span class="str">'shadowtrade'</span>;
+
+<span class="kw">const</span> workflow = <span class="kw">new</span> <span class="fn">AgentWorkflow</span>({
+  parserEndpoint: <span class="str">'https://your-claude-bot.example.com/parse-strategy'</span>,
+  hardLimits: {
+    maxSpendUsdc:  <span class="num">500</span>,
+    maxSlippageBps: <span class="num">75</span>,
+    allowedPairs:  [<span class="str">'ETH/USDC'</span>, <span class="str">'BTC/USDC'</span>],
+  },
+  pollingIntervalMs: <span class="num">5000</span>,
+});
+
+<span class="kw">const</span> receipt = <span class="kw">await</span> workflow.<span class="fn">run</span>(
+  <span class="str">'Buy ETH if it drops below $2800, max spend $200'</span>
+);
+
+console.<span class="fn">log</span>(receipt.txHash);  <span class="comment">// 0x7a3f…</span></div>
+      </div>
+    </section>
+
+    <!-- Architecture -->
+    <section class="section" id="architecture">
+      <span class="section-label">Architecture</span>
+      <h2 class="section-title">Eight stages, zero trust assumptions</h2>
+      <p class="section-subtitle">Each layer is isolated with clear responsibility boundaries.</p>
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-num">Step 1</div>
+          <h4>Parse</h4>
+          <p>BYO-Claude translates natural language into Strategy DSL</p>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">Step 2</div>
+          <h4>Validate</h4>
+          <p>Hard limits clamp or reject invalid values deterministically</p>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">Step 3</div>
+          <h4>Encrypt</h4>
+          <p>BITE v2 wraps strategy in AES-256-GCM with public metadata</p>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">Step 4</div>
+          <h4>Poll</h4>
+          <p>Conditions are checked against market data on interval</p>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">Step 5</div>
+          <h4>Decrypt</h4>
+          <p>Intent is decrypted only when all conditions are met</p>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">Step 6</div>
+          <h4>Risk Check</h4>
+          <p>Final safety verification before any swap is broadcast</p>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">Step 7</div>
+          <h4>Execute</h4>
+          <p>Deterministic swap via DEX with slippage enforcement</p>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">Step 8</div>
+          <h4>Receipt</h4>
+          <p>Immutable audit trail logged with full execution metadata</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <div class="cta-box">
+        <h2>Start building with Shadow Trader</h2>
+        <p>Open source, fully typed, and ready for production DeFi automation.</p>
+        <div class="cta-buttons">
+          <a href="https://github.com/EcosystemNetwork/ShadowTrade" class="btn btn-primary">Get Started →</a>
+          <a href="https://www.npmjs.com/package/shadowtrade" class="btn btn-secondary">npm install shadowtrade</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <span>© 2026 Shadow Trader · ISC License</span>
+      <div class="footer-links">
+        <a href="https://github.com/EcosystemNetwork/ShadowTrade">GitHub</a>
+        <a href="https://www.npmjs.com/package/shadowtrade">npm</a>
+        <a href="https://github.com/EcosystemNetwork/ShadowTrade/issues">Issues</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    /* ── Demo Logic ── */
+    var currentStep = 0;
+    var isRunning = false;
+
+    function showStep(idx) {
+      currentStep = idx;
+      document.querySelectorAll('.demo-step-btn').forEach(function(btn, i) {
+        btn.classList.toggle('active', i === idx);
+      });
+      document.querySelectorAll('.demo-panel').forEach(function(panel, i) {
+        panel.classList.toggle('active', i === idx);
+      });
+    }
+
+    function escapeHtml(text) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(text));
+      return div.innerHTML;
+    }
+
+    function randomHex(len) {
+      var chars = '0123456789abcdef';
+      var result = '';
+      for (var i = 0; i < len; i++) {
+        result += chars[Math.floor(Math.random() * 16)];
+      }
+      return result;
+    }
+
+    function parsePrompt(text) {
+      var prompt = text.toLowerCase();
+      var pair = 'ETH/USDC';
+      var direction = 'buy';
+      var conditionType = 'price_below';
+      var conditionValue = 3000;
+      var amount = 100;
+      var slippage = 50;
+
+      if (prompt.indexOf('btc') !== -1 || prompt.indexOf('bitcoin') !== -1) pair = 'BTC/USDC';
+      if (prompt.indexOf('sell') !== -1) { direction = 'sell'; conditionType = 'price_above'; }
+      if (prompt.indexOf('above') !== -1 && direction === 'buy') conditionType = 'price_above';
+      if (prompt.indexOf('below') !== -1 && direction === 'sell') conditionType = 'price_below';
+
+      var priceMatch = prompt.match(/\$\s*([\d,]+)/);
+      if (priceMatch) conditionValue = parseInt(priceMatch[1].replace(/,/g, ''), 10) || conditionValue;
+
+      var spendMatch = prompt.match(/(?:spend|max)\s*\$?\s*([\d,]+)/);
+      if (spendMatch) amount = parseInt(spendMatch[1].replace(/,/g, ''), 10) || amount;
+
+      var slipMatch = prompt.match(/([\d]+)\s*bps/);
+      if (slipMatch) slippage = parseInt(slipMatch[1], 10) || slippage;
+
+      slippage = Math.max(1, Math.min(slippage, 75));
+      amount = Math.min(amount, 500);
+
+      return {
+        pair: pair,
+        direction: direction,
+        conditionType: conditionType,
+        conditionValue: conditionValue,
+        amount: amount,
+        slippage: slippage
+      };
+    }
+
+    function runDemo() {
+      if (isRunning) return;
+      isRunning = true;
+      var btn = document.getElementById('demoRunBtn');
+      btn.disabled = true;
+      btn.textContent = 'Running…';
+
+      var prompt = document.getElementById('demoPrompt').value || 'Buy ETH if it drops below $3000';
+      var parsed = parsePrompt(prompt);
+      var intentId = randomHex(8) + '-' + randomHex(4) + '-' + randomHex(4) + '-' + randomHex(4) + '-' + randomHex(12);
+      var encPayload = randomHex(64);
+      var iv = randomHex(24);
+      var authTag = randomHex(32);
+      var txHash = '0x' + randomHex(64);
+
+      var steps = [
+        {
+          delay: 600,
+          content:
+            '<span class="comment">// ① BYO-Claude parses natural language → Strategy DSL</span>\n\n' +
+            '<span class="label">Prompt:</span> <span class="str">"' + escapeHtml(prompt) + '"</span>\n\n' +
+            '<span class="label">Parsed Strategy DSL:</span>\n' +
+            '{\n' +
+            '  <span class="key">"pair"</span>:       <span class="str">"' + parsed.pair + '"</span>,\n' +
+            '  <span class="key">"conditions"</span>: [{\n' +
+            '    <span class="key">"type"</span>:  <span class="str">"' + parsed.conditionType + '"</span>,\n' +
+            '    <span class="key">"value"</span>: <span class="num">' + parsed.conditionValue + '</span>\n' +
+            '  }],\n' +
+            '  <span class="key">"actions"</span>: [{\n' +
+            '    <span class="key">"type"</span>:        <span class="str">"swap"</span>,\n' +
+            '    <span class="key">"amount_usdc"</span>: <span class="num">' + parsed.amount + '</span>,\n' +
+            '    <span class="key">"direction"</span>:   <span class="str">"' + parsed.direction + '"</span>\n' +
+            '  }],\n' +
+            '  <span class="key">"controls"</span>: {\n' +
+            '    <span class="key">"max_slippage_bps"</span>:   <span class="num">' + parsed.slippage + '</span>,\n' +
+            '    <span class="key">"approval_mode"</span>:      <span class="str">"auto"</span>,\n' +
+            '    <span class="key">"expires_in_minutes"</span>: <span class="num">60</span>\n' +
+            '  }\n' +
+            '}\n\n' +
+            '<span class="comment">// Parser confidence: 0.92 · Model: claude-custom</span>'
+        },
+        {
+          delay: 500,
+          content:
+            '<span class="comment">// ② Deterministic validation & hard limit enforcement</span>\n\n' +
+            '<span class="label">Validation Report:</span>\n\n' +
+            '  ✅  Pair <span class="str">"' + parsed.pair + '"</span> is in the allowlist\n' +
+            '  ✅  Spend <span class="num">$' + parsed.amount + '</span> ≤ hard cap <span class="num">$500</span>\n' +
+            '  ✅  Slippage <span class="num">' + parsed.slippage + ' bps</span> ≤ hard cap <span class="num">75 bps</span>\n' +
+            '  ✅  Condition type <span class="str">"' + parsed.conditionType + '"</span> is supported\n' +
+            '  ✅  Action type <span class="str">"swap"</span> is supported\n' +
+            '  ✅  Expiry <span class="num">60 min</span> within bounds\n\n' +
+            '<span class="comment">// All checks passed — strategy is valid</span>'
+        },
+        {
+          delay: 700,
+          content:
+            '<span class="comment">// ③ BITE v2 encrypts strategy with AES-256-GCM</span>\n\n' +
+            '<span class="label">Encrypted Intent:</span>\n' +
+            '{\n' +
+            '  <span class="key">"intentId"</span>:       <span class="str">"' + intentId + '"</span>,\n' +
+            '  <span class="key">"encPayload"</span>:     <span class="str">"' + encPayload + '…"</span>,\n' +
+            '  <span class="key">"iv"</span>:             <span class="str">"' + iv + '"</span>,\n' +
+            '  <span class="key">"authTag"</span>:        <span class="str">"' + authTag + '"</span>,\n' +
+            '  <span class="key">"publicMeta"</span>: {\n' +
+            '    <span class="key">"pair"</span>:   <span class="str">"' + parsed.pair + '"</span>,\n' +
+            '    <span class="key">"budget"</span>: <span class="num">' + parsed.amount + '</span>,\n' +
+            '    <span class="key">"expiry"</span>: <span class="str">"' + new Date(Date.now() + 3600000).toISOString() + '"</span>\n' +
+            '  }\n' +
+            '}\n\n' +
+            '<span class="comment">// Strategy payload is encrypted — only metadata is public</span>'
+        },
+        {
+          delay: 900,
+          content:
+            '<span class="comment">// ④ Polling conditions against market data…</span>\n\n' +
+            '  <span class="label">Poll 1:</span>  ' + parsed.pair.split('/')[0] + ' = <span class="num">$' + (parsed.conditionValue + 120) + '</span>  → condition not met\n' +
+            '  <span class="label">Poll 2:</span>  ' + parsed.pair.split('/')[0] + ' = <span class="num">$' + (parsed.conditionValue + 45) + '</span>  → condition not met\n' +
+            '  <span class="label">Poll 3:</span>  ' + parsed.pair.split('/')[0] + ' = <span class="num">$' + (parsed.conditionValue - 12) + '</span>  → <span style="color: var(--accent-green); font-weight: 700;">✓ TRIGGERED</span>\n\n' +
+            '<span class="comment">// Condition "' + parsed.conditionType.replace('_', ' ') + ' ' + parsed.conditionValue + '" is now satisfied</span>\n' +
+            '<span class="comment">// Decrypting intent and proceeding to risk check…</span>'
+        },
+        {
+          delay: 600,
+          content:
+            '<span class="comment">// ⑤ Risk re-check at execution time + deterministic swap</span>\n\n' +
+            '<span class="label">Risk Check:</span>\n' +
+            '  ✅  Action count: <span class="num">1</span> (within limit)\n' +
+            '  ✅  Action type: <span class="str">"swap"</span> (allowed)\n' +
+            '  ✅  No anomalies detected\n\n' +
+            '<span class="label">Executing Trade:</span>\n' +
+            '  Pair:      <span class="str">' + parsed.pair + '</span>\n' +
+            '  Direction: <span class="str">' + parsed.direction + '</span>\n' +
+            '  Amount:    <span class="num">$' + parsed.amount + ' USDC</span>\n' +
+            '  Slippage:  <span class="num">' + parsed.slippage + ' bps</span>\n\n' +
+            '  <span style="color: var(--accent-green); font-weight: 700;">✓ Transaction submitted</span>\n' +
+            '  TX Hash: <span class="str">' + txHash + '</span>'
+        },
+        {
+          delay: 400,
+          content:
+            '<span class="comment">// ⑥ Full execution receipt & immutable audit trail</span>\n\n' +
+            '<span class="label">Execution Receipt:</span>\n' +
+            '{\n' +
+            '  <span class="key">"intentId"</span>:  <span class="str">"' + intentId + '"</span>,\n' +
+            '  <span class="key">"txHash"</span>:    <span class="str">"' + txHash + '"</span>,\n' +
+            '  <span class="key">"status"</span>:    <span class="str">"success"</span>,\n' +
+            '  <span class="key">"prompt"</span>:    <span class="str">"' + escapeHtml(prompt).substring(0, 50) + '…"</span>,\n' +
+            '  <span class="key">"pair"</span>:      <span class="str">"' + parsed.pair + '"</span>,\n' +
+            '  <span class="key">"direction"</span>: <span class="str">"' + parsed.direction + '"</span>,\n' +
+            '  <span class="key">"amount"</span>:    <span class="num">' + parsed.amount + '</span>,\n' +
+            '  <span class="key">"slippage"</span>:  <span class="num">' + parsed.slippage + '</span>,\n' +
+            '  <span class="key">"payments"</span>:  [],\n' +
+            '  <span class="key">"parser"</span>:    { <span class="key">"model"</span>: <span class="str">"claude-custom"</span>, <span class="key">"confidence"</span>: <span class="num">0.92</span> },\n' +
+            '  <span class="key">"timestamp"</span>: <span class="str">"' + new Date().toISOString() + '"</span>\n' +
+            '}\n\n' +
+            '<span style="color: var(--accent-green); font-weight: 700;">✓ Pipeline complete — receipt logged to audit trail</span>'
+        }
+      ];
+
+      var stepIdx = 0;
+      showStep(0);
+
+      function runNext() {
+        if (stepIdx >= steps.length) {
+          btn.disabled = false;
+          btn.textContent = 'Run Pipeline ▶';
+          isRunning = false;
+          return;
+        }
+        var step = steps[stepIdx];
+        document.getElementById('out-' + stepIdx).innerHTML = step.content;
+        showStep(stepIdx);
+        stepIdx++;
+        setTimeout(runNext, step.delay);
+      }
+
+      runNext();
+    }
+  </script>
 </body>
 </html>
