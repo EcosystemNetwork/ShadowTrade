@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shadow Trader</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 640px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5rem;
+      color: #58a6ff;
+      margin-bottom: 0.5rem;
+    }
+    .tagline {
+      font-size: 1.1rem;
+      color: #8b949e;
+      margin-bottom: 2rem;
+    }
+    .architecture {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.9rem;
+      color: #79c0ff;
+      word-break: break-word;
+    }
+    .links {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .links a {
+      display: inline-block;
+      padding: 0.6rem 1.4rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: opacity 0.15s;
+    }
+    .links a:hover { opacity: 0.85; }
+    .links .primary {
+      background: #238636;
+      color: #fff;
+    }
+    .links .secondary {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Shadow Trader</h1>
+    <p class="tagline">Encrypted Conditional DeFi Agent with BYO-Claude Strategy Parsing</p>
+    <div class="architecture">
+      prompt → parse → validate → encrypt → poll → decrypt → execute → receipt
+    </div>
+    <div class="links">
+      <a class="primary" href="https://github.com/EcosystemNetwork/ShadowTrade">GitHub</a>
+      <a class="secondary" href="https://www.npmjs.com/package/shadowtrade">npm</a>
+    </div>
+  </div>
+</body>
+</html>
