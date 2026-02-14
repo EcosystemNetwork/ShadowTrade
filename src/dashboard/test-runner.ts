@@ -30,10 +30,10 @@ export async function runTests(): Promise<TestRunResult> {
   return new Promise((resolve) => {
     const projectRoot = path.resolve(__dirname, "..", "..");
     
-    // Run vitest with JSON reporter
-    const testProcess = spawn("npm", ["test", "--", "--reporter=json"], {
+    // Run vitest directly using npx, excluding admin-panel tests to avoid recursion
+    const testProcess = spawn("npx", ["vitest", "run", "--exclude", "tests/admin-panel.test.ts"], {
       cwd: projectRoot,
-      shell: true,
+      shell: false,
     });
 
     let stdout = "";
@@ -81,9 +81,12 @@ function parseTestOutput(
   let failedTests = 0;
   let duration = 0;
 
+  // Strip ANSI codes from stdout
+  const cleanStdout = stdout.replace(/\x1b\[[0-9;]*m/g, '');
+
   try {
     // Try to parse JSON output from vitest
-    const lines = stdout.split("\n");
+    const lines = cleanStdout.split("\n");
     for (const line of lines) {
       if (line.trim().startsWith("{") && line.includes("testResults")) {
         try {
@@ -96,11 +99,11 @@ function parseTestOutput(
     }
 
     // Fallback: Parse text output
-    const testFileRegex = /✓\s+tests\/([^\s]+)\s+\((\d+)\s+tests?\)/g;
-    const failedFileRegex = /✗\s+tests\/([^\s]+)\s+\((\d+)\s+tests?\)/g;
+    const testFileRegex = /✓\s+tests\/([^\s]+\.test\.ts)\s+\((\d+)\s+tests?\)/g;
+    const failedFileRegex = /✗\s+tests\/([^\s]+\.test\.ts)\s+\((\d+)\s+tests?\)/g;
     
     let match;
-    while ((match = testFileRegex.exec(stdout)) !== null) {
+    while ((match = testFileRegex.exec(cleanStdout)) !== null) {
       const fileName = match[1];
       const testCount = parseInt(match[2], 10);
       
@@ -116,7 +119,7 @@ function parseTestOutput(
       passedTests += testCount;
     }
 
-    while ((match = failedFileRegex.exec(stdout)) !== null) {
+    while ((match = failedFileRegex.exec(cleanStdout)) !== null) {
       const fileName = match[1];
       const testCount = parseInt(match[2], 10);
       
@@ -132,8 +135,8 @@ function parseTestOutput(
       failedTests += testCount;
     }
 
-    // Parse summary
-    const summaryMatch = /Tests\s+(\d+)\s+passed\s+\((\d+)\)/i.exec(stdout);
+    // Parse summary - looking for pattern like "      Tests  89 passed (89)"
+    const summaryMatch = /\s*Tests\s+(\d+)\s+passed\s+\((\d+)\)/i.exec(cleanStdout);
     if (summaryMatch) {
       const passed = parseInt(summaryMatch[1], 10);
       const total = parseInt(summaryMatch[2], 10);
@@ -142,8 +145,11 @@ function parseTestOutput(
       failedTests = total - passed;
     }
 
+    // Parse file count - looking for pattern like "Test Files  14 passed (14)"
+    const fileMatch = /\s*Test\s+Files\s+(\d+)\s+passed\s+\((\d+)\)/i.exec(cleanStdout);
+    
     // Parse duration
-    const durationMatch = /Duration\s+([\d.]+)s/i.exec(stdout);
+    const durationMatch = /\s*Duration\s+([\d.]+)s/i.exec(cleanStdout);
     if (durationMatch) {
       duration = Math.round(parseFloat(durationMatch[1]) * 1000);
     }
