@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Shadow Trader — Encrypted Conditional DeFi Agent</title>
   <meta name="description" content="Execute conditional trades using encrypted intents, BYO-Claude strategy parsing, and strict policy enforcement." />
-  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="/assets/shadowtrade-favicon.svg" type="image/svg+xml" />
+  <link rel="shortcut icon" href="/assets/shadowtrade-favicon.svg" type="image/svg+xml" />
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -122,14 +123,12 @@
       gap: 0.5rem;
     }
     .nav-logo .logo-icon {
-      width: 28px;
-      height: 28px;
-      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.85rem;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 0 0 1px #3b82f620;
+      object-fit: cover;
     }
     .nav-links { display: flex; gap: 1.5rem; align-items: center; }
     .nav-links a {
@@ -156,6 +155,11 @@
       padding: 10rem 1.5rem 5rem;
       max-width: 900px;
       margin: 0 auto;
+    }
+    .hero-logo {
+      width: clamp(110px, 16vw, 160px);
+      margin: 0 auto 1.35rem;
+      filter: drop-shadow(0 18px 36px #1d4ed855);
     }
     .hero-badge {
       display: inline-flex;
@@ -617,7 +621,7 @@
     <!-- Navigation -->
     <nav>
       <a href="#" class="nav-logo">
-        <span class="logo-icon">⚡</span>
+        <img class="logo-icon" src="/assets/shadowtrade-logo.svg" alt="ShadowTrade logo" />
         Shadow Trader
       </a>
       <div class="nav-links">
@@ -634,6 +638,7 @@
         <span class="dot"></span>
         v1.0 — Now Available
       </div>
+      <img class="hero-logo" src="/assets/shadowtrade-logo.svg" alt="ShadowTrade emblem" />
       <h1>Trade Smarter with<br /><span class="gradient-text">Encrypted DeFi Intents</span></h1>
       <p>
         Shadow Trader is an autonomous agent that turns natural-language strategies into

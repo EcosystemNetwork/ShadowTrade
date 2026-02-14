@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Shadow Trader Dashboard — Real Trading with Claw Bots</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="/assets/shadowtrade-favicon.svg" type="image/svg+xml" />
+  <link rel="shortcut icon" href="/assets/shadowtrade-favicon.svg" type="image/svg+xml" />
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -29,15 +30,42 @@
 
     body {
       font-family: var(--font-sans);
-      background: var(--bg-primary);
+      background:
+        radial-gradient(circle at 18% 10%, #2563eb22 0, transparent 40%),
+        radial-gradient(circle at 80% 0%, #06b6d422 0, transparent 35%),
+        var(--bg-primary);
       color: var(--text-primary);
       line-height: 1.6;
       padding: 2rem;
+      min-height: 100vh;
     }
 
     .container {
       max-width: 1400px;
       margin: 0 auto;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .app-logo {
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 16px;
+      border: 1px solid var(--border-glow);
+      box-shadow: 0 16px 40px #1d4ed844;
+      background: #020817;
+      padding: 0.2rem;
+    }
+
+    .app-copy {
+      display: flex;
+      flex-direction: column;
     }
 
     h1 {
@@ -54,6 +82,7 @@
       color: var(--text-secondary);
       margin-bottom: 2rem;
       font-size: 1rem;
+      max-width: 720px;
     }
 
     .grid {
@@ -64,10 +93,11 @@
     }
 
     .card {
-      background: var(--bg-card);
+      background: linear-gradient(180deg, #111827f2 0%, #0f172af2 100%);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 1.5rem;
+      box-shadow: 0 14px 32px #02061766;
     }
 
     .card-header {
@@ -374,6 +404,12 @@
         <p class="subtitle">Real trading with pluggable claw bots • Encrypted conditional DeFi execution</p>
       </div>
       <a href="/admin" class="btn-secondary" style="text-decoration: none; padding: 0.75rem 1.5rem;">⚙️ Admin Panel</a>
+    <div class="app-header">
+      <img class="app-logo" src="/assets/shadowtrade-logo.svg" alt="ShadowTrade logo" />
+      <div class="app-copy">
+        <h1>Shadow Trader Dashboard</h1>
+        <p class="subtitle">Real trading with pluggable claw bots • Encrypted conditional DeFi execution</p>
+      </div>
     </div>
 
     <div class="grid">
