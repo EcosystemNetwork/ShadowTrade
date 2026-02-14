@@ -301,6 +301,20 @@
       flex: 1;
     }
 
+    .quick-connect-panel {
+      margin: 1rem 0;
+      padding: 1rem;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: #0f172a66;
+    }
+
+    .helper-text {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+    }
+
     .modal {
       display: none;
       position: fixed;
@@ -378,8 +392,19 @@
           <h2 class="card-title">🤖 Claw Bots</h2>
           <button class="btn-secondary refresh-btn" id="refreshBotsBtn">Refresh</button>
         </div>
+        <div class="quick-connect-panel">
+          <form id="quickConnectForm">
+            <div class="form-group">
+              <label>Quick Connect URL</label>
+              <input type="text" id="quickBotEndpoint" placeholder="claw-bot.example.com" required />
+            </div>
+            <button type="submit" class="btn-primary">⚡ Quick Connect Bot</button>
+            <p class="helper-text">Paste your bot domain or parser URL. We'll auto-complete <code>/parse-strategy</code>.</p>
+          </form>
+          <div id="quickConnectMessage"></div>
+        </div>
         <div class="form-group">
-          <button class="btn-primary" id="addBotBtn">+ Add New Bot</button>
+          <button class="btn-secondary" id="addBotBtn">+ Advanced Bot Setup</button>
         </div>
         <ul class="bot-list" id="botList">
           <li class="empty-state">No bots configured yet</li>
@@ -483,6 +508,7 @@
       document.getElementById('closeTradeDetailsBtn').addEventListener('click', closeTradeDetailsModal);
       document.getElementById('tradeForm').addEventListener('submit', submitTrade);
       document.getElementById('addBotForm').addEventListener('submit', addBot);
+      document.getElementById('quickConnectForm').addEventListener('submit', quickConnectBot);
       
       // Event delegation for dynamically added buttons
       document.getElementById('tradeList').addEventListener('click', (e) => {
@@ -578,6 +604,34 @@
       document.getElementById('addBotModal').classList.remove('active');
       document.getElementById('addBotForm').reset();
       document.getElementById('addBotMessage').innerHTML = '';
+    }
+
+    async function quickConnectBot(event) {
+      event.preventDefault();
+
+      const endpoint = document.getElementById('quickBotEndpoint').value;
+      const messageDiv = document.getElementById('quickConnectMessage');
+
+      try {
+        const response = await fetch(`${API_BASE}/api/bots/quick-connect`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          messageDiv.innerHTML = `<div class="success-message">Connected ${escapeHtml(result.bot.name)} successfully.</div>`;
+          document.getElementById('quickConnectForm').reset();
+          await loadBots();
+          setTimeout(() => { messageDiv.innerHTML = ''; }, 2500);
+        } else {
+          const error = await response.json();
+          messageDiv.innerHTML = `<div class="error-message">Error: ${error.error || 'Failed to connect bot'}</div>`;
+        }
+      } catch (err) {
+        messageDiv.innerHTML = '<div class="error-message">Network error. Please try again.</div>';
+      }
     }
 
     async function addBot(event) {

@@ -103,6 +103,41 @@ describe("DashboardServer", () => {
     expect(bots.some((b) => b.name === "test-bot")).toBe(true);
   });
 
+
+  it("POST /api/bots/quick-connect normalizes bare domain and defaults", async () => {
+    const res = await makeRequest(port, "POST", "/api/bots/quick-connect", {
+      endpoint: "claw-bot.example.com",
+    });
+
+    expect(res.status).toBe(201);
+    const payload = res.data as { bot: { name: string; endpoint: string; enabled: boolean } };
+    expect(payload.bot.name).toBe("claw-bot-example-com");
+    expect(payload.bot.endpoint).toBe("https://claw-bot.example.com/parse-strategy");
+    expect(payload.bot.enabled).toBe(true);
+  });
+
+  it("POST /api/bots/quick-connect preserves parse path if provided", async () => {
+    const res = await makeRequest(port, "POST", "/api/bots/quick-connect", {
+      endpoint: "https://example.com/custom-parse",
+      name: "custom-bot",
+      enabled: false,
+    });
+
+    expect(res.status).toBe(201);
+    const payload = res.data as { bot: { name: string; endpoint: string; enabled: boolean } };
+    expect(payload.bot.name).toBe("custom-bot");
+    expect(payload.bot.endpoint).toBe("https://example.com/custom-parse");
+    expect(payload.bot.enabled).toBe(false);
+  });
+
+  it("POST /api/bots/quick-connect returns 400 when endpoint missing", async () => {
+    const res = await makeRequest(port, "POST", "/api/bots/quick-connect", {
+      name: "invalid",
+    });
+
+    expect(res.status).toBe(400);
+  });
+
   it("GET /api/trades returns list of trades", async () => {
     const res = await makeRequest(port, "GET", "/api/trades");
     expect(res.status).toBe(200);

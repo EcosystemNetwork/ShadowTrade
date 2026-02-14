@@ -11,6 +11,14 @@ export interface ServerConfig {
   corsOrigin?: string;
 }
 
+interface QuickConnectPayload {
+  name?: string;
+  endpoint: string;
+  apiKey?: string;
+  timeout_ms?: number;
+  enabled?: boolean;
+}
+
 /**
  * HTTP server for the trading dashboard.
  */
@@ -136,6 +144,36 @@ export class DashboardServer {
       return;
     }
 
+    // POST /api/bots/quick-connect - Register using a base URL
+    if (pathname === "/api/bots/quick-connect" && req.method === "POST") {
+      const body = await this.readBody(req);
+      const payload = JSON.parse(body) as QuickConnectPayload;
+
+      if (!payload.endpoint || typeof payload.endpoint !== "string") {
+        this.sendJson(res, 400, { error: "endpoint is required" });
+        return;
+      }
+
+      const normalizedEndpoint = this.normalizeParserEndpoint(payload.endpoint);
+      const parsedUrl = new URL(normalizedEndpoint);
+      const fallbackName = parsedUrl.hostname.replace(/\./g, "-");
+
+      const botConfig: BotConfig = {
+        name: payload.name?.trim() || fallbackName,
+        endpoint: normalizedEndpoint,
+        apiKey: payload.apiKey,
+        timeout_ms: payload.timeout_ms,
+        enabled: payload.enabled ?? true,
+      };
+
+      this.dashboard.registerBot(botConfig);
+      this.sendJson(res, 201, {
+        message: "Bot quick-connected successfully",
+        bot: botConfig,
+      });
+      return;
+    }
+
     // GET /api/bots/:name/health - Check bot health
     if (pathname.startsWith("/api/bots/") && pathname.endsWith("/health") && req.method === "GET") {
       const botName = decodeURIComponent(pathname.split("/")[3]);
@@ -216,6 +254,21 @@ export class DashboardServer {
   private sendJson(res: http.ServerResponse, statusCode: number, data: unknown): void {
     res.writeHead(statusCode, { "Content-Type": "application/json" });
     res.end(JSON.stringify(data));
+  }
+
+  /**
+   * Normalize bot parser endpoint to support pasting either a base URL or full route.
+   */
+  private normalizeParserEndpoint(endpoint: string): string {
+    const trimmed = endpoint.trim();
+    const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    const parsed = new URL(withProtocol);
+    const normalizedPath = parsed.pathname === "/" ? "/parse-strategy" : parsed.pathname;
+    parsed.pathname = normalizedPath;
+    parsed.search = "";
+    parsed.hash = "";
+
+    return parsed.toString();
   }
 
   /**
