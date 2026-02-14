@@ -4,6 +4,10 @@
 
 Shadow Trader is an autonomous DeFi trading agent that executes conditional trades using encrypted intents, paid data discovery, and strict policy enforcement. Users may plug in their own custom Claude bots to translate natural-language strategies into a structured Strategy DSL, while the system enforces deterministic guardrails, encryption, and execution.
 
+## Product Spec
+
+For the complete product requirements and architecture narrative, see [`docs/product-spec.md`](docs/product-spec.md).
+
 ## Architecture
 
 ```
@@ -93,7 +97,7 @@ npm test
 
 ## Trading Dashboard
 
-Shadow Trader includes a web-based dashboard for managing claw bots and executing real trades.
+Shadow Trader includes a web-based dashboard for managing Claude parser bots and executing real trades.
 
 ### Starting the Dashboard
 
@@ -107,7 +111,7 @@ This starts an HTTP server at `http://localhost:8080` with:
 
 ### Using the Dashboard
 
-1. **Add a Claw Bot**
+1. **Add a Claude Bot**
    - Click "Add New Bot" in the dashboard
    - Enter your bot's name and parser endpoint URL
    - Optionally add an API key for authentication
