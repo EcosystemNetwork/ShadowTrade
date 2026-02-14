@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - Test Results</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-card: #111827;
+      --bg-code: #0d1117;
+      --border: #1e293b;
+      --border-glow: #3b82f620;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-purple: #8b5cf6;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "SFMono-Regular", Consolas, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .nav-link {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover {
+      border-color: var(--accent-blue);
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value.pass {
+      color: var(--accent-green);
+    }
+
+    .stat-value.fail {
+      color: var(--accent-rose);
+    }
+
+    .stat-value.total {
+      color: var(--accent-cyan);
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-pass {
+      background: #10b98120;
+      color: var(--accent-green);
+    }
+
+    .status-fail {
+      background: #f43f5e20;
+      color: var(--accent-rose);
+    }
+
+    .status-running {
+      background: #f59e0b20;
+      color: var(--accent-amber);
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px #3b82f640;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-muted);
+    }
+
+    .test-file-list {
+      list-style: none;
+    }
+
+    .test-file-item {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .test-file-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .test-file-name {
+      font-weight: 700;
+      color: var(--accent-cyan);
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+    }
+
+    .test-file-stats {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .test-file-stat {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .test-list {
+      list-style: none;
+      margin-left: 1rem;
+      border-left: 2px solid var(--border);
+      padding-left: 1rem;
+    }
+
+    .test-item {
+      padding: 0.5rem;
+      margin-bottom: 0.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .test-name {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .test-duration {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-left: 0.5rem;
+    }
+
+    .test-error {
+      background: #f43f5e10;
+      border: 1px solid var(--accent-rose);
+      border-radius: 6px;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      color: var(--accent-rose);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .collapsed .test-list {
+      display: none;
+    }
+
+    .expand-icon {
+      transition: transform 0.2s;
+      margin-right: 0.5rem;
+    }
+
+    .collapsed .expand-icon {
+      transform: rotate(-90deg);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-primary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-actions">
+      <div>
+        <h1>Admin Panel</h1>
+        <p class="subtitle">Test Results & System Status</p>
+      </div>
+      <div class="nav-links">
+        <a href="/dashboard" class="nav-link">📊 Trading Dashboard</a>
+        <a href="/admin" class="nav-link">⚙️ Admin Panel</a>
+      </div>
+    </div>
+
+    <div class="summary-stats" id="summaryStats">
+      <div class="stat-card">
+        <div class="stat-value total" id="totalTests">-</div>
+        <div class="stat-label">Total Tests</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value pass" id="passedTests">-</div>
+        <div class="stat-label">Passed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value fail" id="failedTests">-</div>
+        <div class="stat-label">Failed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="duration">-</div>
+        <div class="stat-label">Duration</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">🧪 Test Suite</h2>
+        <div>
+          <button class="btn-secondary" id="refreshBtn" style="margin-right: 0.5rem;">Refresh Results</button>
+          <button class="btn-primary" id="runTestsBtn">
+            <span id="runTestsText">Run Tests</span>
+            <span id="runTestsSpinner" style="display: none;" class="loading-spinner"></span>
+          </button>
+        </div>
+      </div>
+      
+      <div id="testResults">
+        <div class="empty-state">
+          <p>No test results yet. Click "Run Tests" to execute the test suite.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '';
+    let testResults = null;
+
+    window.addEventListener('load', () => {
+      document.getElementById('runTestsBtn').addEventListener('click', runTests);
+      document.getElementById('refreshBtn').addEventListener('click', loadTestResults);
+      
+      // Load any existing test results on page load
+      loadTestResults();
+    });
+
+    async function runTests() {
+      const btn = document.getElementById('runTestsBtn');
+      const btnText = document.getElementById('runTestsText');
+      const btnSpinner = document.getElementById('runTestsSpinner');
+      
+      btn.disabled = true;
+      btnText.style.display = 'none';
+      btnSpinner.style.display = 'inline-block';
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/admin/tests/run`, {
+          method: 'POST',
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          testResults = data;
+          displayTestResults(data);
+        } else {
+          const error = await response.json();
+          alert('Failed to run tests: ' + (error.error || 'Unknown error'));
+        }
+      } catch (err) {
+        console.error('Failed to run tests:', err);
+        alert('Network error. Please try again.');
+      } finally {
+        btn.disabled = false;
+        btnText.style.display = 'inline';
+        btnSpinner.style.display = 'none';
+      }
+    }
+
+    async function loadTestResults() {
+      try {
+        const response = await fetch(`${API_BASE}/api/admin/tests/results`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.testResults) {
+            testResults = data;
+            displayTestResults(data);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load test results:', err);
+      }
+    }
+
+    function displayTestResults(data) {
+      // Update summary stats
+      document.getElementById('totalTests').textContent = data.totalTests || 0;
+      document.getElementById('passedTests').textContent = data.passedTests || 0;
+      document.getElementById('failedTests').textContent = data.failedTests || 0;
+      
+      const duration = data.duration || 0;
+      document.getElementById('duration').textContent = duration >= 1000 
+        ? (duration / 1000).toFixed(2) + 's'
+        : duration + 'ms';
+      
+      // Display test files
+      const resultsDiv = document.getElementById('testResults');
+      const testFiles = data.testResults || [];
+      
+      if (testFiles.length === 0) {
+        resultsDiv.innerHTML = '<div class="empty-state">No test results available.</div>';
+        return;
+      }
+      
+      const passed = data.success ? 'pass' : 'fail';
+      const statusBadge = `<span class="status-badge status-${passed}">${data.success ? 'All Passed' : 'Some Failed'}</span>`;
+      
+      resultsDiv.innerHTML = `
+        <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+          <div style="color: var(--text-secondary); font-size: 0.9rem;">
+            Last run: ${new Date(data.timestamp).toLocaleString()}
+          </div>
+          ${statusBadge}
+        </div>
+        <ul class="test-file-list" id="testFileList"></ul>
+      `;
+      
+      const fileList = document.getElementById('testFileList');
+      testFiles.forEach((file, fileIndex) => {
+        const fileItem = document.createElement('li');
+        fileItem.className = 'test-file-item collapsed';
+        
+        const passCount = file.tests.filter(t => t.status === 'passed').length;
+        const failCount = file.tests.filter(t => t.status === 'failed').length;
+        const fileStatus = failCount === 0 ? 'pass' : 'fail';
+        
+        fileItem.innerHTML = `
+          <div class="test-file-header" data-file-index="${fileIndex}">
+            <div>
+              <span class="expand-icon">▼</span>
+              <span class="test-file-name">${escapeHtml(file.name)}</span>
+            </div>
+            <div class="test-file-stats">
+              <span class="test-file-stat">${file.tests.length} tests</span>
+              <span class="status-badge status-${fileStatus}">${passCount} / ${file.tests.length}</span>
+            </div>
+          </div>
+          <ul class="test-list" id="testList-${fileIndex}"></ul>
+        `;
+        
+        fileList.appendChild(fileItem);
+        
+        const testList = document.getElementById(`testList-${fileIndex}`);
+        file.tests.forEach(test => {
+          const testItem = document.createElement('li');
+          testItem.className = 'test-item';
+          
+          const statusBadge = `<span class="status-badge status-${test.status === 'passed' ? 'pass' : 'fail'}">${test.status}</span>`;
+          const duration = test.duration ? `<span class="test-duration">(${test.duration}ms)</span>` : '';
+          
+          testItem.innerHTML = `
+            <div>
+              <span class="test-name">${escapeHtml(test.name)}</span>
+              ${duration}
+            </div>
+            ${statusBadge}
+          `;
+          
+          if (test.error) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'test-error';
+            errorDiv.textContent = test.error;
+            testItem.appendChild(errorDiv);
+          }
+          
+          testList.appendChild(testItem);
+        });
+        
+        // Add click handler for expand/collapse
+        fileItem.querySelector('.test-file-header').addEventListener('click', () => {
+          fileItem.classList.toggle('collapsed');
+        });
+      });
+    }
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+  </script>
+</body>
+</html>

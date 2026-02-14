@@ -4,6 +4,8 @@ import * as path from "path";
 import { TradingDashboard } from "./trading-dashboard";
 import type { DashboardConfig } from "./trading-dashboard";
 import type { BotConfig } from "./bot-manager";
+import { runTests } from "./test-runner";
+import type { TestRunResult } from "./test-runner";
 
 export interface ServerConfig {
   port: number;
@@ -18,6 +20,7 @@ export class DashboardServer {
   private readonly dashboard: TradingDashboard;
   private readonly config: ServerConfig;
   private server?: http.Server;
+  private lastTestResult?: TestRunResult;
 
   constructor(dashboardConfig: DashboardConfig, serverConfig: ServerConfig) {
     this.dashboard = new TradingDashboard(dashboardConfig);
@@ -94,6 +97,11 @@ export class DashboardServer {
       // Serve static files
       if (pathname === "/" || pathname === "/dashboard") {
         this.serveFile(res, "dashboard.html", "text/html");
+        return;
+      }
+
+      if (pathname === "/admin") {
+        this.serveFile(res, "admin.html", "text/html");
         return;
       }
 
@@ -180,6 +188,29 @@ export class DashboardServer {
         this.sendJson(res, 200, { message: "Trade cancelled" });
       } else {
         this.sendJson(res, 404, { error: "Trade not found or cannot be cancelled" });
+      }
+      return;
+    }
+
+    // POST /api/admin/tests/run - Run test suite
+    if (pathname === "/api/admin/tests/run" && req.method === "POST") {
+      try {
+        const result = await runTests();
+        this.lastTestResult = result;
+        this.sendJson(res, 200, result);
+      } catch (err) {
+        console.error("Error running tests:", err);
+        this.sendJson(res, 500, { error: "Failed to run tests" });
+      }
+      return;
+    }
+
+    // GET /api/admin/tests/results - Get last test results
+    if (pathname === "/api/admin/tests/results" && req.method === "GET") {
+      if (this.lastTestResult) {
+        this.sendJson(res, 200, this.lastTestResult);
+      } else {
+        this.sendJson(res, 200, { testResults: null });
       }
       return;
     }
