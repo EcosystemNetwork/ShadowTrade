@@ -111,18 +111,23 @@ This starts an HTTP server at `http://localhost:8080` with:
 
 ### Using the Dashboard
 
-1. **Add a Claude Bot**
-   - Click "Add New Bot" in the dashboard
+1. **Quick Connect a Claw Bot (Fastest)**
+   - Paste your bot domain or parser URL in **Quick Connect URL**
+   - Click **Quick Connect Bot**
+   - The dashboard auto-adds `https://` if missing and auto-completes `/parse-strategy`
+
+2. **Add a Claude Bot (Advanced)**
+   - Click "Advanced Bot Setup" in the dashboard
    - Enter your bot's name and parser endpoint URL
-   - Optionally add an API key for authentication
+   - Optionally add an API key and custom timeout
    - Enable the bot to make it available for trading
 
-2. **Submit a Trade**
+3. **Submit a Trade**
    - Select a registered bot from the dropdown
    - Enter your trading strategy in natural language
    - Click "Submit Trade" to start monitoring
 
-3. **Monitor Trades**
+4. **Monitor Trades**
    - View active trades in real-time
    - Check trade status (pending, monitoring, executed, failed, expired)
    - View detailed trade information including receipts
@@ -134,6 +139,7 @@ The dashboard exposes a REST API for programmatic access:
 **Bot Management**
 - `GET /api/bots` - List all registered bots
 - `POST /api/bots` - Register a new bot
+- `POST /api/bots/quick-connect` - Register a bot from domain/base URL (auto-normalized)
 - `GET /api/bots/:name/health` - Check bot health
 
 **Trade Management**
@@ -150,6 +156,15 @@ curl -X POST http://localhost:8080/api/bots \
     "name": "my-claude-bot",
     "endpoint": "https://your-bot.example.com/parse-strategy",
     "enabled": true
+  }'
+```
+
+**Example: Quick Connect a Bot**
+```bash
+curl -X POST http://localhost:8080/api/bots/quick-connect \
+  -H "Content-Type: application/json" \
+  -d '{
+    "endpoint": "claw-bot.example.com"
   }'
 ```
 
